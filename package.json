@@ -5,10 +5,15 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "db:generate": "pnpm -F @next-hono-d1-template/db db:generate",
+    "db:migrate": "pnpm -F @next-hono-d1-template/db db:migrate:local",
+    "db:migrate:remote": "pnpm -F @next-hono-d1-template/db db:migrate:remote",
+    "api:deploy": "pnpm -F @next-hono-d1-template/api deploy"
   },
   "devDependencies": {
-    "turbo": "^2.1.0"
+    "turbo": "^2.1.0",
+    "wrangler": "^3.114.17"
   },
   "dependencies": {
     "tailwindcss-animate": "^1.0.7"

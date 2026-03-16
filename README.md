@@ -44,13 +44,50 @@ pnpm dev
 - フロントエンド: [http://localhost:3000](http://localhost:3000)
 - バックエンド: [http://localhost:8787](http://localhost:8787)
 
-### 3. 型チェック
+また、`apps/web` は [Next.js](https://nextjs.org) プロジェクトです。Cloudflare Pages で動作させるため、すべてのページとレイアウトで **Edge Runtime** (`export const runtime = "edge";`) が適用されています。詳細なドキュメントは [Next.js Documentation](https://nextjs.org/docs) を参照してください。
+
+## 🗄 データベース (Drizzle / D1)
+
+### マイグレーションの管理
 
 ```bash
-pnpm lint
-# または個別に
-pnpm --filter @next-hono-d1-template/api exec npx tsc --noEmit
+# マイグレーションファイルの生成
+pnpm db:generate
+
+# ローカルDBへの適用
+pnpm db:migrate
+
+# 本番DBへの適用
+pnpm db:migrate:remote
 ```
+
+### Drizzle Studio
+
+```bash
+pnpm -F @next-hono-d1-template/db studio
+```
+
+## 🌐 デプロイ
+
+### Cloudflare D1 セットアップ
+
+```bash
+# D1データベースの作成
+npx wrangler d1 create next-hono-d1-template-db
+
+# 表示された database_id を apps/api/wrangler.toml に設定
+```
+
+### Cloudflare Workers (API)
+
+1. **ルートディレクトリ**: `apps/api`
+2. **デプロイコマンド**: `npx wrangler deploy`
+
+### Cloudflare Pages (Web)
+
+1. **ルートディレクトリ**: `apps/web`
+2. **ビルドコマンド**: `pnpm pages:build`
+3. **ビルド出力ディレクトリ**: `.vercel/output/static`
 
 ## 💡 特徴: RPCによる型安全な開発
 

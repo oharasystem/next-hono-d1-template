@@ -5,7 +5,9 @@
   "types": "src/index.ts",
   "scripts": {
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:migrate:local": "wrangler d1 migrations apply next-hono-d1-template-db --local --config ../../apps/api/wrangler.toml",
+    "db:migrate:remote": "wrangler d1 migrations apply next-hono-d1-template-db --remote --config ../../apps/api/wrangler.toml",
+    "studio": "drizzle-kit studio",
     "lint": "eslint src/"
   },
   "dependencies": {
@@ -13,6 +15,8 @@
   },
   "devDependencies": {
     "drizzle-kit": "^0.24.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "tsx": "^4.19.2",
+    "@cloudflare/workers-types": "^4.20240529.0"
   }
 }
