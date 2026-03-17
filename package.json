@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.12.1",
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev pages:dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "db:generate": "pnpm -F @next-hono-d1-template/db db:generate",
