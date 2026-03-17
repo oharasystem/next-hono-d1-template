@@ -41,11 +41,27 @@ pnpm install
 ```bash
 pnpm dev
 ```
-- フロントエンド (Next.js): [http://localhost:3000](http://localhost:3000)
-- バックエンド (Hono): [http://localhost:8787](http://localhost:8787)
-- **統合プロキシサーバー (推奨)**: [http://localhost:8888](http://localhost:8888)
 
-`pnpm dev` を実行すると、フロントエンドとバックエンドに加え、Cloudflare Pages Functions のプロキシ環境も同時に起動します。**[http://localhost:8888](http://localhost:8888)** を通じて開発することで、本番環境と同じドメイン（Same-origin）構成での動作確認が可能です。
+このコマンドを実行すると、以下の3つのプロセスが同時に立ち上がります。
+
+| ポート | 名前 | 役割 |
+| :--- | :--- | :--- |
+| **8888** | **Integrated Proxy** | **開発時のメイン入口**。フロントエンドとAPIをまとめて提供。 |
+| 3000 | Next.js App | フロントエンド本体。HMR（ホットリロード）を提供。 |
+| 8787 | Hono API | バックエンド本体（Workers / D1）。 |
+
+#### 💡 開発時の重要ポイント: どのURLを開くべきか？
+
+ブラウザでは **[http://localhost:8888](http://localhost:8888)** を開いて開発することを強く推奨します。
+
+```mermaid
+graph LR
+    Browser["ブラウザ (Port 8888)"] -- "/ (その他)" --> NextJS["Next.js (Port 3000)"]
+    Browser -- "/api/*" --> Hono["Hono API (Port 8787)"]
+```
+
+**なぜ 8888 なのか？**
+Cloudflare Pages の本番環境では、フロントエンドと API が同じドメイン上で動作します。ポート 8888（Wrangler Proxy）を通すことで、ローカルでも本番と同様に **CORS（クロスドメイン制限）を一切気にせず** `/api/...` という相対パスで安全に通信できるためです。
 
 また、`apps/web` は [Next.js](https://nextjs.org) プロジェクトです。Cloudflare Pages で動作させるため、すべてのページとレイアウトで **Edge Runtime** (`export const runtime = "edge";`) が適用されています。詳細なドキュメントは [Next.js Documentation](https://nextjs.org/docs) を参照してください。
 
