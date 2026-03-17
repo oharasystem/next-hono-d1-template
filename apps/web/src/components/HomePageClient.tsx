@@ -8,10 +8,10 @@ import { useState } from "react";
 export function HomePageClient() {
   const [greetName, setGreetName] = useState("");
 
-  const helloQuery = useQuery({
-    queryKey: ["hello"],
+  const usersQuery = useQuery({
+    queryKey: ["users"],
     queryFn: async () => {
-      const res = await client.hello.$get();
+      const res = await client.users.$get();
       return res.json();
     },
   });
@@ -37,20 +37,28 @@ export function HomePageClient() {
 
       <div className="flex flex-col gap-6 p-8 border rounded-xl bg-card shadow-sm w-full max-w-md">
         <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold">API Test (Query)</h2>
-          {helloQuery.isLoading ? (
+          <h2 className="text-xl font-semibold">D1 Data Test (Users)</h2>
+          {usersQuery.isLoading ? (
             <p>Loading...</p>
           ) : (
-            <pre className="p-4 bg-muted rounded-md overflow-x-auto text-xs">
-              {JSON.stringify(helloQuery.data, null, 2)}
-            </pre>
+            <ul className="divide-y divide-border">
+              {usersQuery.data?.map((user: any) => (
+                <li key={user.id} className="py-2 flex justify-between">
+                  <span>{user.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
           <Button 
             variant="outline" 
-            onClick={() => helloQuery.refetch()}
-            disabled={helloQuery.isFetching}
+            onClick={() => usersQuery.refetch()}
+            disabled={usersQuery.isFetching}
+            className="mt-2"
           >
-            Refetch Hello
+            Refresh Users
           </Button>
         </div>
 

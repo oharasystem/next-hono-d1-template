@@ -59,6 +59,9 @@ pnpm db:migrate
 
 # 本番DBへの適用
 pnpm db:migrate:remote
+
+# サンプルデータの投入 (ローカル)
+pnpm db:seed
 ```
 
 ### Drizzle Studio

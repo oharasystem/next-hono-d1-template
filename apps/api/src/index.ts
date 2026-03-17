@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { zValidator } from '@hono/zod-validator';
 import { helloSchema } from '@next-hono-d1-template/shared';
-// import { createDb, usersTable } from '@next-hono-d1-template/db';
+import { createDb, usersTable } from '@next-hono-d1-template/db';
 
 type Bindings = {
   DB: D1Database;
@@ -19,6 +19,11 @@ const route = app
       message: 'Hello from Hono API (Monorepo)!',
       timestamp: new Date().toISOString(),
     });
+  })
+  .get('/users', async (c) => {
+    const db = createDb(c.env.DB);
+    const users = await db.select().from(usersTable).all();
+    return c.json(users);
   })
   .post('/greet', zValidator('json', helloSchema), (c) => {
     const data = c.req.valid('json');
