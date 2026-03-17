@@ -7,6 +7,8 @@ export const onRequest: PagesFunction<{ NEXT_PUBLIC_API_URL: string }> = async (
   const backendPath = url.pathname.replace(/^\/api/, "");
   const backendUrl = new URL(backendPath + url.search, backendBaseUrl);
   
+  console.log(`[Proxy] ${context.request.method} ${url.pathname} -> ${backendUrl.toString()}`);
+  
   // 元のリクエストを転送（ヘッダーなども維持）
   return fetch(backendUrl.toString(), context.request);
 };
