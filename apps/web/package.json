@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "pages:dev": "wrangler pages dev --port 8888 --proxy 3000",
+    "pages:dev": "wrangler pages dev --port 8888 --proxy 3000 --inspector-port 9230",
     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",
