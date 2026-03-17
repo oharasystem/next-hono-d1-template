@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "pages:dev": "wrangler pages dev --proxy 3000",
     "build": "next build",
     "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start",

@@ -41,8 +41,20 @@ pnpm install
 ```bash
 pnpm dev
 ```
-- フロントエンド: [http://localhost:3000](http://localhost:3000)
-- バックエンド: [http://localhost:8787](http://localhost:8787)
+- フロントエンド (Next.js): [http://localhost:3000](http://localhost:3000)
+- バックエンド (Hono): [http://localhost:8787](http://localhost:8787)
+
+#### 💡 API プロキシを利用した開発 (推奨)
+
+ブラウザから `/api/*` を経由してバックエンドと通信する場合、Cloudflare Pages Functions のプロキシ機能をローカルでシミュレートするために以下のコマンドを使用します。
+
+```bash
+# 別のターミナルで実行
+pnpm -F @next-hono-d1-template/web pages:dev
+```
+- **統合プロキシサーバー**: [http://localhost:8888](http://localhost:8888)
+
+このポート（8888）にアクセスすることで、フロントエンドの表示と `/api/*` へのプロキシが同一ドメインとして動作し、CORS を意識せずに開発できます。
 
 また、`apps/web` は [Next.js](https://nextjs.org) プロジェクトです。Cloudflare Pages で動作させるため、すべてのページとレイアウトで **Edge Runtime** (`export const runtime = "edge";`) が適用されています。詳細なドキュメントは [Next.js Documentation](https://nextjs.org/docs) を参照してください。
 
