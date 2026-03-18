@@ -1,0 +1,4 @@
+name = "next-hono-d1-template-web"
+pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
