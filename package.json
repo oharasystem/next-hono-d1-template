@@ -9,7 +9,9 @@
     "db:generate": "pnpm -F @next-hono-d1-template/db db:generate",
     "db:migrate": "pnpm -F @next-hono-d1-template/db db:migrate:local",
     "db:migrate:remote": "pnpm -F @next-hono-d1-template/db db:migrate:remote",
-    "api:deploy": "pnpm -F @next-hono-d1-template/api deploy"
+    "db:seed": "pnpm -F @next-hono-d1-template/db db:seed",
+    "db:seed:remote": "pnpm -F @next-hono-d1-template/db db:seed:remote",
+    "api:deploy": "pnpm -F @next-hono-d1-template/api run deploy"
   },
   "devDependencies": {
     "turbo": "^2.1.0",

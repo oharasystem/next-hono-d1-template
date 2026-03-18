@@ -5,5 +5,5 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "next-hono-d1-template-db"
-database_id = "YOUR_D1_DATABASE_ID_HERE"
+database_id = "d6809233-4818-4542-957d-e01306c56317"
 migrations_dir = "../../packages/db/drizzle"
