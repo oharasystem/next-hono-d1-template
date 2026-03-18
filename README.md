@@ -111,7 +111,7 @@ npx wrangler d1 create next-hono-d1-template-db
 2. **ビルドコマンド**: `pnpm pages:build`
 3. **ビルド出力ディレクトリ**: `.vercel/output/static`
 4. **環境変数の設定**:
-   - `API_URL`: デプロイされた API (Cloudflare Workers) の URL を設定してください。
+   - `API_BASE_URL`: デプロイされた API (Cloudflare Workers) の URL を設定してください。
    - 例: `https://next-hono-d1-template-api.xxxx.workers.dev`
    - 未設定の場合、ローカル開発用の `http://localhost:8787` が使用されます。
    - **💡 セキュリティ**: `NEXT_PUBLIC_` プレフィックスを付けていないため、この URL はブラウザ側には露出せず、Next.js のプロキシルート（サーバーサイド）でのみ安全に使用されます。
