@@ -10,9 +10,9 @@ async function proxyRequest(request: NextRequest) {
   const url = new URL(request.url);
   
   // バックエンドURLの選定
-  // 1. 環境変数 NEXT_PUBLIC_API_URL (デプロイ時に設定)
+  // 1. 環境変数 API_URL (デプロイ時に設定)
   // 2. ローカル開発時のデフォルト (http://localhost:8787)
-  const backendBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+  const backendBaseUrl = process.env.API_URL || "http://localhost:8787";
   
   // /api プレフィックスを除去してバックエンドのパスを構築
   const backendPath = url.pathname.replace(/^\/api/, "");

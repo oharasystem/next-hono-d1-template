@@ -14,8 +14,8 @@ const getBaseUrl = () => {
   }
   
   // サーバー側 (Next.js Edge Runtime / SSR)
-  // デプロイ時は NEXT_PUBLIC_API_URL を設定することを推奨
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+  // デプロイ時は API_URL を設定することを推奨
+  return process.env.API_URL || "http://localhost:8787";
 };
 
 const client = hc<AppType>(getBaseUrl());
