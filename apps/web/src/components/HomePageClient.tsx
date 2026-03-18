@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import client from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { RefreshCw, User, Terminal, CheckCircle2, FlaskConical } from "lucide-react";
+import { RefreshCw, User, Terminal, CheckCircle2, FlaskConical, Loader2, AlertCircle } from "lucide-react";
 
 export function HomePageClient() {
   const [greetName, setGreetName] = useState("");
@@ -14,6 +14,7 @@ export function HomePageClient() {
     setMounted(true);
   }, []);
 
+  // ユーザー一覧を取得する Query
   const usersQuery = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
@@ -23,16 +24,32 @@ export function HomePageClient() {
     },
   });
 
-  const greetMutation = async () => {
-    const res = await client.greet.$post({
-      json: { name: greetName },
-    });
-    if (!res.ok) {
-      alert("Error calling API");
-      return;
+  // Greet API を呼び出す Mutation
+  const greetMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await client.greet.$post({
+        json: { name },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Hono RPC が返す共用体型からエラーメッセージを抽出
+        const errorMessage = (data as { error?: string }).error || "Failed to call API";
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: (data) => {
+      // 成功時の処理（data.message は型安全）
+      alert(data.message);
+      setGreetName("");
+    },
+    onError: (error) => {
+      alert(error instanceof Error ? error.message : "Error calling API");
     }
-    const data = await res.json();
-    alert(data.message);
+  });
+
+  const handleGreet = () => {
+    greetMutation.mutate(greetName);
   };
 
   return (
@@ -143,11 +160,16 @@ export function HomePageClient() {
                   />
                 </div>
                 <Button 
-                  onClick={greetMutation}
-                  className="w-full py-6 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-lg shadow-lg shadow-purple-900/20 cursor-pointer"
+                  onClick={handleGreet}
+                  disabled={greetMutation.isPending}
+                  className="w-full py-6 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-lg shadow-lg shadow-purple-900/20 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <FlaskConical size={20} className="mr-2" />
-                  Test Greet RPC
+                  {greetMutation.isPending ? (
+                    <Loader2 size={20} className="mr-2 animate-spin" />
+                  ) : (
+                    <FlaskConical size={20} className="mr-2" />
+                  )}
+                  {greetMutation.isPending ? "Sending..." : "Test Greet RPC"}
                 </Button>
               </div>
 

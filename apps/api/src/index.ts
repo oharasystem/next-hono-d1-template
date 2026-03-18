@@ -1,8 +1,7 @@
-/// <reference types="@cloudflare/workers-types" />
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { zValidator } from '@hono/zod-validator';
-import { helloSchema } from '@next-hono-d1-template/shared';
+import { helloSchema, type GreetResponse, type User } from '@next-hono-d1-template/shared';
 import { createDb, usersTable } from '@next-hono-d1-template/db';
 
 type Bindings = {
@@ -29,16 +28,23 @@ const route = app
   })
   // D1 データベースからデータを取得するエンドポイント
   .get('/users', async (c) => {
-    const db = createDb(c.env.DB);
-    const users = await db.select().from(usersTable).all();
-    return c.json(users);
+    try {
+      const db = createDb(c.env.DB);
+      // drizzle の select 結果を明示的な User 型の配列として扱う
+      const users = await db.select().from(usersTable).all();
+      return c.json(users as User[]);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      return c.json({ error: 'Failed to fetch users' }, 500);
+    }
   })
   // Zod バリデーション付きの POST エンドポイント
   .post('/greet', zValidator('json', helloSchema), (c) => {
     const data = c.req.valid('json');
-    return c.json({
+    const response: GreetResponse = {
       message: `Hello, ${data.name || 'Anonymous'}!`,
-    });
+    };
+    return c.json(response);
   });
 
 // フロントエンドで AppType を import することで、API 通信が型安全になります
