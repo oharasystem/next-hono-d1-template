@@ -3,11 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import client from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCw, User, Terminal, CheckCircle2, FlaskConical } from "lucide-react";
 
 export function HomePageClient() {
   const [greetName, setGreetName] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const usersQuery = useQuery({
     queryKey: ["users"],
@@ -151,7 +156,7 @@ export function HomePageClient() {
                 <div className="text-xs space-y-1 text-yellow-200/70">
                   <p className="font-bold text-yellow-500/90 text-sm mb-1 uppercase tracking-wider">Environment Check</p>
                   <p>Proxying via <code className="bg-black/40 px-1 py-0.5 rounded">/api</code></p>
-                  <p className="truncate">URL: <code className="bg-black/40 px-1 py-0.5 rounded">{typeof window !== 'undefined' ? window.location.origin + '/api' : '...'}</code></p>
+                  <p className="truncate">URL: <code className="bg-black/40 px-1 py-0.5 rounded">{mounted ? window.location.origin + '/api' : '...'}</code></p>
                 </div>
               </div>
             </div>
