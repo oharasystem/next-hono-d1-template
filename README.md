@@ -69,23 +69,24 @@ pnpm dev
 
 | ポート | 名前 | 役割 |
 | :--- | :--- | :--- |
-| **8888** | **Wrangler Pages Proxy** | **開発時のメイン入口**。フロントエンドとAPIをまとめて提供。 |
-| 3000 | Next.js App | フロントエンド本体。HMR（ホットリロード）を提供。 |
+| **3000** | **Next.js App** | **開発時のメイン入口**。フロントエンド本体と HMR、APIプロキシを提供。 |
 | 8787 | Hono API | バックエンド本体（Cloudflare Workers / D1）。 |
+| 8888 | Wrangler Pages Proxy | 本番（Cloudflare Pages）の挙動をシミュレートするプロキシ。 |
 
 #### 💡 開発時の重要ポイント: どのURLを開くべきか？
 
-ブラウザでは **[http://localhost:8888](http://localhost:8888)** を開いて開発することを強く推奨します。
+ブラウザでは **[http://localhost:3000](http://localhost:3000)** を開いて開発することを推奨します。
 
 ```mermaid
 graph LR
-    Browser["ブラウザ (Port 8888)"] -- "/ (その他)" --> NextJS["Next.js (Port 3000)"]
-    Browser -- "/api/*" --> Proxy["Next.js API Proxy"]
-    Proxy --> Hono["Hono API (Port 8787)"]
+    Browser["ブラウザ (Port 3000)"] -- "表示 / その他" --> NextJS["Next.js"]
+    Browser -- "/api/* (相対パス)" --> Proxy["Next.js Route Handler"]
+    Proxy -- "転送 (API_BASE_URL)" --> Hono["Hono API (Port 8787)"]
 ```
 
-**なぜ 8888 なのか？**
-Cloudflare Pages の本番環境では、フロントエンドと API が同じドメイン上で動作します。ポート 8888（Wrangler Pages Proxy）を通すことで、ローカルでも本番と同様に **CORS（クロスドメイン制限）を一切気にせず** `/api/...` という相対パスで安全に通信できるためです。
+**なぜ 3000 なのか？**
+従来は CORS 回避のために Wrangler Proxy (8888) を通す必要がありましたが、現在は Next.js の **Route Handler** (`app/api/[[...path]]/route.ts`) が API プロキシとして機能しています。
+ブラウザから `/api/...` という相対パスでリクエストを送ると、Next.js 自身がバックエンド（8787）へデータを橋渡しするため、ポート 3000 だけで **CORS を意識せず、高速な HMR（ホッドリロード）の恩恵を受けながら** 開発が可能です。
 
 ### アーキテクチャ: API プロキシパターン
 
