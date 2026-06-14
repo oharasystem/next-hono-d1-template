@@ -7,3 +7,10 @@ binding = "DB"
 database_name = "next-hono-d1-template-db"
 database_id = "d6809233-4818-4542-957d-e01306c56317"
 migrations_dir = "../../packages/db/drizzle"
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
+enabled = true
