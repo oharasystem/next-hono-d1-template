@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 /**
  * Cloudflare Pages (Next.js) から Cloudflare Workers (Hono) へのプロキシ
  * 本番環境およびプレビュー環境で CORS を回避し、同一ドメインとして扱うためのルートです。
