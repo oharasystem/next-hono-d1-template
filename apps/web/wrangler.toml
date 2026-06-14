@@ -3,6 +3,9 @@ main = ".open-next/worker.js"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+API_BASE_URL = "https://next-hono-d1-template-api.o-lab.workers.dev"
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
