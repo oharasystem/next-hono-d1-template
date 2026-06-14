@@ -14,40 +14,35 @@ async function proxyRequest(request: NextRequest) {
   
   // /api プレフィックスを除去してバックエンドのパスを構築
   const backendPath = url.pathname.replace(/^\/api/, "");
-  const backendUrl = new URL(backendPath + url.search, backendBaseUrl);
+  
+  // Next.js のキャッチオールパラメータ ([[...path]]) がクエリに含まれるため除去
+  const searchParams = new URLSearchParams(url.search);
+  searchParams.delete("path");
+  const search = searchParams.toString();
+  
+  const backendUrl = new URL(backendPath + (search ? `?${search}` : ""), backendBaseUrl);
   
   console.log(`[Proxy] ${request.method} ${url.pathname} -> ${backendUrl.toString()}`);
   
-  // 元のヘッダーをそのまま渡すと Cloudflare 内部でブロック（404）されるため、
-  // 必要なヘッダー（ホスト情報や特定の cf-* ヘッダーを除く）のみを選別して転送します
-  const forwardHeaders = new Headers();
-  const allowedHeaders = [
-    'accept',
-    'accept-encoding',
-    'accept-language',
-    'content-type',
-    'cookie',
-    'authorization',
-    'user-agent',
-    'x-forwarded-for',
-    'x-real-ip',
-  ];
-  for (const header of allowedHeaders) {
-    const value = request.headers.get(header);
-    if (value) {
-      forwardHeaders.set(header, value);
-    }
-  }
+  const headers = new Headers(request.headers);
+  // Hostヘッダーをバックエンドのものに上書き（Cloudflare Workers へのルーティングに必要）
+  headers.set('host', backendUrl.host);
 
   try {
     const response = await fetch(backendUrl.toString(), {
       method: request.method,
-      headers: forwardHeaders,
+      headers,
       body: (request.method !== 'GET' && request.method !== 'HEAD') ? request.body : undefined,
       // @ts-ignore: Next.js/Edge Runtime でのストリーミング転送に必要
       duplex: 'half',
       cache: 'no-store',
+      redirect: 'manual',
     });
+
+    // ステータス0、または不透明なリダイレクトはそのまま返す（RangeError回避）
+    if (response.status === 0 || response.type === 'opaqueredirect') {
+      return response;
+    }
 
     // レスポンスヘッダーのコピー
     const responseHeaders = new Headers(response.headers);
