@@ -10,7 +10,7 @@ next-hono-d1-template/
 ├── apps/
 │   ├── api/          # Hono (Cloudflare Workers) - バックエンドAPI
 │   │   └── src/index.ts  # APIルート定義、AppType のエクスポート
-│   └── web/          # Next.js (App Router) - フロントエンド (Cloudflare Pages)
+│   └── web/          # Next.js (App Router) - フロントエンド (Cloudflare Workers / OpenNext)
 │       └── src/
 │           ├── app/          # App Router ページ・レイアウト
 │           │   └── api/[[...path]]/route.ts  # API プロキシルート
@@ -36,9 +36,8 @@ next-hono-d1-template/
 
 ## Next.js (App Router) ページ実装ガイドライン
 
-### 1. Edge Runtime の強制適用
-Cloudflare Pages 上で動作するため、**すべてのページ・レイアウト**は Edge Runtime で動作する必要があります。
-`export const runtime = "edge";` を明示的に宣言してください。
+### 1. ランタイムについて
+OpenNextの導入により、Node.js互換APIもCloudflare Workers上で動作可能になりました。必要に応じて Edge Runtime を使用することも可能ですが、強制されるものではありません。
 
 ### 2. Client Component の分離
 ページコンポーネント (`app/**/page.tsx`) は、原則として **Server Component** として実装してください。
@@ -46,7 +45,6 @@ Cloudflare Pages 上で動作するため、**すべてのページ・レイア�
 
 #### 実装パターン
 1. **Server Component (`app/**/page.tsx`)**
-   - ファイルの先頭で `export const runtime = "edge";` を宣言する。
    - Client Component を import してレンダリングするだけの責務とする。
 
 2. **Client Component (`components/**/*Client.tsx`)**
@@ -105,14 +103,14 @@ Server Actions の戻り値には明示的な型定義を付与してくださ�
 
 | 変数名 | 場所 | 説明 |
 | :--- | :--- | :--- |
-| `API_BASE_URL` | `apps/web/.dev.vars` | バックエンドAPI のベースURL。ローカルでは `http://localhost:8787` |
+| `API_BASE_URL` | `apps/web/.env` | バックエンドAPI のベースURL。ローカルでは `http://localhost:8787` |
 | `DB` (Binding) | `apps/api/wrangler.toml` | Cloudflare D1 データベースバインディング |
 
 ## 開発コマンド
 
 | コマンド | 説明 |
 | :--- | :--- |
-| `pnpm dev` | Next.js (3000) + Hono (8787) + Wrangler Proxy (8888) を同時起動 |
+| `pnpm dev` | Next.js (3000) + Hono (8787) を同時起動 |
 | `pnpm build` | 全パッケージのビルド |
 | `pnpm db:generate` | Drizzle マイグレーションファイル生成 |
 | `pnpm db:migrate` | ローカル D1 へマイグレーション適用 |
