@@ -18,14 +18,31 @@ async function proxyRequest(request: NextRequest) {
   
   console.log(`[Proxy] ${request.method} ${url.pathname} -> ${backendUrl.toString()}`);
   
-  const headers = new Headers(request.headers);
-  // Hostヘッダーをバックエンドのものに上書き（Cloudflare Workers へのルーティングに必要）
-  headers.set('host', backendUrl.host);
+  // 元のヘッダーをそのまま渡すと Cloudflare 内部でブロック（404）されるため、
+  // 必要なヘッダー（ホスト情報や特定の cf-* ヘッダーを除く）のみを選別して転送します
+  const forwardHeaders = new Headers();
+  const allowedHeaders = [
+    'accept',
+    'accept-encoding',
+    'accept-language',
+    'content-type',
+    'cookie',
+    'authorization',
+    'user-agent',
+    'x-forwarded-for',
+    'x-real-ip',
+  ];
+  for (const header of allowedHeaders) {
+    const value = request.headers.get(header);
+    if (value) {
+      forwardHeaders.set(header, value);
+    }
+  }
 
   try {
     const response = await fetch(backendUrl.toString(), {
       method: request.method,
-      headers,
+      headers: forwardHeaders,
       body: (request.method !== 'GET' && request.method !== 'HEAD') ? request.body : undefined,
       // @ts-ignore: Next.js/Edge Runtime でのストリーミング転送に必要
       duplex: 'half',

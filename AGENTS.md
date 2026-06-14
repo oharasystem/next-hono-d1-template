@@ -37,7 +37,7 @@ next-hono-d1-template/
 ## Next.js (App Router) ページ実装ガイドライン
 
 ### 1. ランタイムについて
-OpenNextの導入により、Node.js互換APIもCloudflare Workers上で動作可能になりました。必要に応じて Edge Runtime を使用することも可能ですが、強制されるものではありません。
+OpenNextの導入により、Node.js互換APIもCloudflare Workers/Pages上で動作可能になりました。なお、モジュールの競合防止や適切なプリレンダリングを行うため、Next.jsの個別ファイル（layout.tsxやpage.tsx等）で `export const runtime = "edge"` を記述することは禁止し、OpenNext側の変換構成にすべて任せるルールとしています。
 
 ### 2. Client Component の分離
 ページコンポーネント (`app/**/page.tsx`) は、原則として **Server Component** として実装してください。
@@ -52,7 +52,7 @@ OpenNextの導入により、Node.js互換APIもCloudflare Workers上で動作�
    - 実際のUIロジック、状態管理、データフェッチ（TanStack Query）を行う。
 
 ### 3. API プロキシパターン
-フロントエンドからバックエンドへのアクセスは、Next.js Edge Runtime 上の **プロキシルート** (`app/api/[[...path]]/route.ts`) を経由します。
+フロントエンドからバックエンドへのアクセスは、Next.js の **プロキシルート** (`app/api/[[...path]]/route.ts`) を経由します。
 - ブラウザからは `/api/*` という相対パスでアクセス
 - プロキシルートが `API_BASE_URL`（環境変数）またはローカルの `http://localhost:8787` にリクエストを転送
 - CORS を回避し、バックエンドURLをクライアントに露出させない
@@ -106,12 +106,15 @@ Server Actions の戻り値には明示的な型定義を付与してくださ�
 | `API_BASE_URL` | `apps/web/.env` | バックエンドAPI のベースURL。ローカルでは `http://localhost:8787` |
 | `DB` (Binding) | `apps/api/wrangler.toml` | Cloudflare D1 データベースバインディング |
 
-## 開発コマンド
+## 開発・デプロイコマンド
 
 | コマンド | 説明 |
 | :--- | :--- |
 | `pnpm dev` | Next.js (3000) + Hono (8787) を同時起動 |
-| `pnpm build` | 全パッケージのビルド |
+| `pnpm build` | 全パッケージのビルド・型チェック |
+| `pnpm -F @next-hono-d1-template/web pages:build` | Cloudflare Webアプリ (OpenNext) のビルド |
+| `npx wrangler deploy -c apps/web/wrangler.toml` | Webアプリの Cloudflare Pages デプロイ |
+| `npx wrangler versions upload -c apps/web/wrangler.toml` | Webアプリのバージョンアップロード |
 | `pnpm db:generate` | Drizzle マイグレーションファイル生成 |
 | `pnpm db:migrate` | ローカル D1 へマイグレーション適用 |
 | `pnpm db:seed` | ローカル D1 へサンプルデータ投入 |

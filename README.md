@@ -90,7 +90,7 @@ graph LR
 
 ### アーキテクチャ: API プロキシパターン
 
-ブラウザからの `/api/*` リクエストは、Next.js Edge Runtime 上の **プロキシルート** (`app/api/[[...path]]/route.ts`) を経由してバックエンド（Hono API）に転送されます。
+ブラウザからの `/api/*` リクエストは、Next.js の **プロキシルート** (`app/api/[[...path]]/route.ts`) を経由してバックエンド（Hono API）に転送されます。
 
 - **メリット**: CORSを回避、バックエンドURLをクライアントに露出させない
 - **ブラウザ側**: `hono/client` で `/api` を起点に型安全なRPCを呼び出し
@@ -146,8 +146,10 @@ pnpm api:deploy
 
 ### Cloudflare Pages (Web)
 
-1. **ビルドコマンド**: `pnpm pages:build`（`apps/web` ディレクトリで実行）
-2. **ビルド出力ディレクトリ**: `.vercel/output/static`
+1. **ビルドコマンド**: `pnpm build && pnpm -F @next-hono-d1-template/web pages:build`
+2. **デプロイコマンド**: `npx wrangler deploy -c apps/web/wrangler.toml`
+3. **バージョンコマンド**: `npx wrangler versions upload -c apps/web/wrangler.toml`
+4. **ビルド出力ディレクトリ**: `.open-next/assets` (静的アセット) および `.open-next/worker.js` (ワーカースクリプト)
 3. **環境変数の設定**:
    - `API_BASE_URL`: デプロイされた API (Cloudflare Workers) の URL を設定してください。
    - 例: `https://next-hono-d1-template-api.xxxx.workers.dev`
@@ -182,3 +184,5 @@ const data = await res.json(); // ← 型が自動で効く！
 | `pnpm db:seed` | ローカル D1 へサンプルデータ投入 |
 | `pnpm db:seed:remote` | リモート D1 へサンプルデータ投入 |
 | `pnpm api:deploy` | Cloudflare Workers に API をデプロイ |
+| `pnpm -F @next-hono-d1-template/web pages:build` | Cloudflare Webアプリ (OpenNext) のビルド |
+| `npx wrangler deploy -c apps/web/wrangler.toml` | Webアプリの Cloudflare Pages デプロイ |
