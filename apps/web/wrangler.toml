@@ -4,7 +4,7 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-API_BASE_URL = "https://next-hono-d1-template-api.o-lab.workers.dev"
+API_BASE_URL = "https://api.next-hono-d1-template.solooo.dev"
 
 [assets]
 directory = ".open-next/assets"
