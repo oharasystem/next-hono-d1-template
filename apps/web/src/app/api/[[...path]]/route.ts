@@ -1,53 +1,91 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Cloudflare Pages (Next.js) から Cloudflare Workers (Hono) へのプロキシ
- * 本番環境およびプレビュー環境で CORS を回避し、同一ドメインとして扱うためのルートです。
+ *
+ * 優先順位:
+ * 1. Service Binding (本番/wrangler dev): HTTP通信なしで直接 API Worker を呼び出す
+ * 2. HTTP fetch (ローカル next dev): API_BASE_URL または http://localhost:8787 へフォールバック
  */
 async function proxyRequest(request: NextRequest) {
   const url = new URL(request.url);
-  
-  // バックエンドURLの選定
-  // 1. 環境変数 API_BASE_URL (デプロイ時に設定)
-  // 2. ローカル開発時のデフォルト (http://localhost:8787)
-  const backendBaseUrl = process.env.API_BASE_URL || "http://localhost:8787";
-  
+
   // /api プレフィックスを除去してバックエンドのパスを構築
-  const backendPath = url.pathname.replace(/^\/api/, "");
-  
+  const backendPath = url.pathname.replace(/^\/api/, "") || "/";
+
   // Next.js のキャッチオールパラメータ ([[...path]]) がクエリに含まれるため除去
   const searchParams = new URLSearchParams(url.search);
   searchParams.delete("path");
   const search = searchParams.toString();
-  
-  const backendUrl = new URL(backendPath + (search ? `?${search}` : ""), backendBaseUrl);
-  
-  console.log(`[Proxy] ${request.method} ${url.pathname} -> ${backendUrl.toString()}`);
-  
+  const queryString = search ? `?${search}` : "";
+
+  const body =
+    request.method !== "GET" && request.method !== "HEAD"
+      ? request.body
+      : undefined;
+
+  // --- Service Binding 経由（本番・wrangler dev 環境）---
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+
+    if (env.API) {
+      // Service Binding の fetch は URL のホスト部分を無視し、パスのみでルーティングする
+      const serviceUrl = `http://worker${backendPath}${queryString}`;
+      console.log(
+        `[Proxy/Binding] ${request.method} ${url.pathname} -> ${serviceUrl}`
+      );
+
+      const headers = new Headers(request.headers);
+      const bindingRequest = new Request(serviceUrl, {
+        method: request.method,
+        headers,
+        body,
+        // @ts-ignore: ストリーミング転送に必要
+        duplex: "half",
+      });
+
+      const response = await env.API.fetch(bindingRequest);
+      const responseHeaders = new Headers(response.headers);
+      responseHeaders.delete("content-encoding");
+
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      });
+    }
+  } catch {
+    // Cloudflare コンテキスト外（ローカル next dev）の場合は HTTP fetch へフォールバック
+  }
+
+  // --- HTTP fetch 経由（ローカル開発環境フォールバック）---
+  const backendBaseUrl = process.env.API_BASE_URL || "http://localhost:8787";
+  const backendUrl = new URL(backendPath + queryString, backendBaseUrl);
+  console.log(
+    `[Proxy/HTTP] ${request.method} ${url.pathname} -> ${backendUrl.toString()}`
+  );
+
   const headers = new Headers(request.headers);
-  // Hostヘッダーをバックエンドのものに上書き（Cloudflare Workers へのルーティングに必要）
-  headers.set('host', backendUrl.host);
+  headers.set("host", backendUrl.host);
 
   try {
     const response = await fetch(backendUrl.toString(), {
       method: request.method,
       headers,
-      body: (request.method !== 'GET' && request.method !== 'HEAD') ? request.body : undefined,
+      body,
       // @ts-ignore: Next.js/Edge Runtime でのストリーミング転送に必要
-      duplex: 'half',
-      cache: 'no-store',
-      redirect: 'manual',
+      duplex: "half",
+      cache: "no-store",
+      redirect: "manual",
     });
 
-    // ステータス0、または不透明なリダイレクトはそのまま返す（RangeError回避）
-    if (response.status === 0 || response.type === 'opaqueredirect') {
+    if (response.status === 0 || response.type === "opaqueredirect") {
       return response;
     }
 
-    // レスポンスヘッダーのコピー
     const responseHeaders = new Headers(response.headers);
-    // CORS関連のヘッダーはプロキシ側で制御するため、バックエンドからのものは削除または調整
-    responseHeaders.delete('content-encoding'); // ブラウザ/Next.jsが再圧縮する場合があるため
+    responseHeaders.delete("content-encoding");
 
     return new Response(response.body, {
       status: response.status,
@@ -57,7 +95,10 @@ async function proxyRequest(request: NextRequest) {
   } catch (error) {
     console.error(`[Proxy Error] ${url.pathname}:`, error);
     return NextResponse.json(
-      { error: "Proxy connection failed", details: error instanceof Error ? error.message : String(error) },
+      {
+        error: "Proxy connection failed",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 502 }
     );
   }
