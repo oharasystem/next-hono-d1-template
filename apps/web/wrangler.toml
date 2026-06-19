@@ -6,6 +6,11 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 API_BASE_URL = "https://api.next-hono-d1-template.solooo.dev"
 
+# Service Binding: HTTP通信を介さずAPIワーカーを直接呼び出す
+[[services]]
+binding = "API"
+service = "next-hono-d1-template-api"
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
